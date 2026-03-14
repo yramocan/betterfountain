@@ -18,6 +18,7 @@ import { performance } from "perf_hooks";
 import { exportHtml } from "./providers/StaticHtml";
 import { FountainCheatSheetWebviewViewProvider } from "./providers/Cheatsheet";
 import { FountainPdfExportViewProvider } from "./providers/PdfExport";
+import { FountainCharacterDetailsViewProvider } from "./providers/CharacterDetails";
 import { createPdfPreviewPanel, FountainPdfPanelserializer, getPdfPreviewPanels, refreshPdfPanel, updateDocumentVersionPdfPreview } from "./providers/PdfPreview";
 import * as commands from "./commands";
 import { FountainLocationTreeDataProvider } from "./providers/Locations";
@@ -63,6 +64,7 @@ export function activate(context: ExtensionContext) {
   registerCommandTreeView();
   registerCheatsheetWebView();
   registerPdfExportView();
+  registerCharacterDetailsView();
 
   //Register Status Bar Items
   durationStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
@@ -135,6 +137,11 @@ export function activate(context: ExtensionContext) {
   function registerPdfExportView() {
     const pdfExportViewProvider = new FountainPdfExportViewProvider(context.extensionUri);
     vscode.window.registerWebviewViewProvider("fountain-pdf-export", pdfExportViewProvider);
+  }
+
+  function registerCharacterDetailsView() {
+    const characterDetailsProvider = new FountainCharacterDetailsViewProvider(context.extensionUri, () => parsedDocuments);
+    vscode.window.registerWebviewViewProvider("fountain-character-details", characterDetailsProvider);
   }
   
   function registerCommandTreeView() {
