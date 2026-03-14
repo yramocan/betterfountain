@@ -85,6 +85,11 @@
 					"id": "fountain-cheatsheet",
 					"name": "Cheat Sheet",
 					"type": "webview"
+				},
+				{
+					"id": "fountain-pdf-export",
+					"name": "PDF Export",
+					"type": "webview"
 				}
 			]
 		},

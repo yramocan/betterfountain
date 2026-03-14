@@ -8,13 +8,12 @@ import { GeneratePdf } from "./pdf/pdf";
 import { getActiveFountainDocument, getEditor, openFile, shiftScenes } from "./utils";
 import * as telemetry from "./telemetry";
 
-export async function exportPdf(showSaveDialog: boolean = true, openFileOnSave: boolean = false, highlightCharacters = false, highlightChanges = false) {
+export async function exportPdf(showSaveDialog: boolean = true, openFileOnSave: boolean = false, highlightCharacters = false, highlightChanges = false, configOverrides?: Partial<import("./configloader").FountainConfig>) {
   var canceled = false;
   if (canceled) return;
   var editor = getEditor(getActiveFountainDocument());
 
-
-  var config = getFountainConfig(getActiveFountainDocument());
+  var config = { ...getFountainConfig(getActiveFountainDocument()), ...configOverrides };
   telemetry.reportTelemetry("command:fountain.exportpdf");
 
   var parsed = await afterparser.parse(editor.document.getText(), config, false);
