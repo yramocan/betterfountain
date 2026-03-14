@@ -96,6 +96,11 @@
 					"id": "fountain-character-details",
 					"name": "Character details",
 					"type": "webview"
+				},
+				{
+					"id": "fountain-manifest",
+					"name": "Script structure",
+					"type": "webview"
 				}
 			]
 		},
