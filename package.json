@@ -41,6 +41,7 @@
 		"onCommand:fountain:exporthtml",
 		"onCommand:fountain.exportpdfdebug",
 		"onCommand:fountain.exportpdfcustom",
+		"onCommand:fountain.newFromTemplate",
 		"onView:fountain-cheatsheet",
 		"onWebviewPanel:fountainPreview"
 	],
@@ -361,6 +362,11 @@
 			{
 				"command": "fountain.exporthtml",
 				"title": "Export screenplay HTML",
+				"category": "Fountain"
+			},
+			{
+				"command": "fountain.newFromTemplate",
+				"title": "New from template",
 				"category": "Fountain"
 			},
 			{

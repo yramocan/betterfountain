@@ -1,4 +1,6 @@
 'use strict';
+import * as path from "path";
+import * as fs from "fs";
 import { parsedDocuments, outlineViewProvider } from "./extension";
 import { previews } from "./providers/Preview";
 import { getFountainConfig, ExportConfig, changeFountainUIPersistence, uiPersistence } from "./configloader";
@@ -7,6 +9,43 @@ import * as afterparser from "./afterwriting-parser";
 import { GeneratePdf } from "./pdf/pdf";
 import { getActiveFountainDocument, getEditor, openFile, shiftScenes } from "./utils";
 import * as telemetry from "./telemetry";
+
+const TEMPLATES: { id: string; label: string; description: string; file: string }[] = [
+	{ id: "beat-sheet", label: "Blake Snyder's Beat Sheet", description: "15 beats (Opening Image through Final Image)", file: "beat-sheet.fountain" },
+	{ id: "minimal", label: "Minimal", description: "Title page + first scene stub", file: "minimal.fountain" },
+];
+
+export async function newFromTemplate(context: vscode.ExtensionContext) {
+	telemetry.reportTelemetry("command:fountain.newFromTemplate");
+	const picked = await vscode.window.showQuickPick(TEMPLATES.map(t => ({ ...t, label: t.label, description: t.description })), {
+		placeHolder: "Choose a template",
+		matchOnDescription: true,
+	});
+	if (!picked) return;
+	const templatePath = path.join(context.extensionPath, "templates", picked.file);
+	let content: string;
+	try {
+		content = fs.readFileSync(templatePath, "utf8");
+	} catch (err) {
+		vscode.window.showErrorMessage(`Could not read template: ${(err as Error).message}`);
+		return;
+	}
+	const defaultUri = vscode.workspace.workspaceFolders?.[0]?.uri
+		?? vscode.Uri.file(process.env.HOME || process.env.USERPROFILE || "");
+	const saveUri = await vscode.window.showSaveDialog({
+		defaultUri: vscode.Uri.joinPath(defaultUri, "untitled.fountain"),
+		filters: { "Fountain": ["fountain"], "All": ["*"] },
+	});
+	if (!saveUri) return;
+	try {
+		fs.writeFileSync(saveUri.fsPath, content, "utf8");
+	} catch (err) {
+		vscode.window.showErrorMessage(`Could not write file: ${(err as Error).message}`);
+		return;
+	}
+	const doc = await vscode.workspace.openTextDocument(saveUri);
+	await vscode.window.showTextDocument(doc);
+}
 
 export async function exportPdf(showSaveDialog: boolean = true, openFileOnSave: boolean = false, highlightCharacters = false, highlightChanges = false, configOverrides?: Partial<import("./configloader").FountainConfig>) {
   var canceled = false;
