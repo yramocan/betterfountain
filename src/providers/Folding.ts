@@ -1,31 +1,37 @@
-import { FoldingRangeProvider, FoldingRange, TextDocument } from "vscode";
+import * as vscode from "vscode";
 import { parsedDocuments } from "../extension";
 import { StructToken } from "../afterwriting-parser";
 
-export class FountainFoldingRangeProvider implements FoldingRangeProvider {
-	provideFoldingRanges(document: TextDocument): FoldingRange[] {
-		var ranges: FoldingRange[] = [];
+export class FountainFoldingRangeProvider implements vscode.FoldingRangeProvider {
+	provideFoldingRanges(document: vscode.TextDocument): vscode.FoldingRange[] {
+		var ranges: vscode.FoldingRange[] = [];
 		if (parsedDocuments.has(document.uri.toString())) {
+			const synopsisVisible = vscode.workspace.getConfiguration("fountain.general", document.uri).get<boolean>("synopsisVisibleWhenFolding", false);
 
-			function addRange(structItem: StructToken, nextStructItem: StructToken, lastline:number) {
-				if(structItem.isnote) return;
-				if(nextStructItem != undefined) //this is the last child, so the end of the folding range is the end of the parent
+			function addRange(structItem: StructToken, nextStructItem: StructToken, lastline: number) {
+				if (structItem.isnote) return;
+				if (nextStructItem != undefined)
 					lastline = nextStructItem.range.start.line;
-				ranges.push(new FoldingRange(structItem.range.start.line, lastline-1));
+				let startLine = structItem.range.start.line;
+				const endLine = lastline - 1;
+				if (synopsisVisible && structItem.synopses && structItem.synopses.length > 0) {
+					const lastSynopsisLine = structItem.synopses[structItem.synopses.length - 1].line;
+					startLine = lastSynopsisLine + 1;
+				}
+				if (startLine <= endLine) {
+					ranges.push(new vscode.FoldingRange(startLine, endLine));
+				}
 
-				if(structItem.children && structItem.children.length){
-					//for each child of the structtoken, repeat this process recursively
+				if (structItem.children && structItem.children.length) {
 					for (let i = 0; i < structItem.children.length; i++) {
 						addRange(structItem.children[i], structItem.children[i + 1], lastline);
 					}
 				}
-				
 			}
 
 			let parsed = parsedDocuments.get(document.uri.toString());
 			for (let i = 0; i < parsed.properties.structure.length; i++) {
-				//for each structToken, add a new range starting on the current structToken and ending on either the next one, or the last line of the document
-				addRange(parsed.properties.structure[i], parsed.properties.structure[i+1], document.lineCount);
+				addRange(parsed.properties.structure[i], parsed.properties.structure[i + 1], document.lineCount);
 			}
 		}
 		return ranges;

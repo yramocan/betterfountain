@@ -138,6 +138,11 @@
 						"default": true,
 						"markdownDescription": "Automatically skip to the next line if the caret is just before the last parenthesis within a parenthetical (as such❚). If you are using a vim emulator, you should disable this setting - an [issue with vscode](https://github.com/Microsoft/vscode/issues/13441) means it is impossible for two extensions to simultaneously intercept typing."
 					},
+					"fountain.general.synopsisVisibleWhenFolding": {
+						"type": "boolean",
+						"default": false,
+						"description": "When folding a section or scene, keep synopsis line(s) visible above the collapsed block instead of folding them with the content."
+					},
 					"fountain.general.previewTheme": {
 						"type": "string",
 						"enum": [
