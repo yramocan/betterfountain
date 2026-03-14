@@ -8,6 +8,13 @@ import readabilityScores = require("readability-scores")
 type dialoguePiece = {
     character: string
     speech: string
+    line: number
+    sceneTitle: string
+}
+
+type characterReportEntry = {
+    sceneTitle: string
+    line: number
 }
 
 interface dialoguePerCharacter {
@@ -29,6 +36,8 @@ type dialogueStatisticPerCharacter = {
     averageComplexity:number,
     monologues:number,
     color:string
+    /** Per-character report: scene + line for each dialogue block (for "Reveal in editor"). */
+    report?: characterReportEntry[]
 }
 
 type singleSceneStatistic = {
@@ -121,18 +130,32 @@ function gradeToAge(grade:number) {
     return age(Math.round(grade + 5))
 }
 
+/** Returns the scene title (heading text) for the given line, or empty string if before any scene. */
+function getSceneTitleAtLine(scenes: { text: string; line: number }[], line: number): string {
+    let title = "";
+    for (const s of scenes) {
+        if (s.line <= line) title = s.text;
+        else break;
+    }
+    return title;
+}
+
 const createCharacterStatistics = (parsed: parseoutput): characterStatistics => {
     const dialoguePieces: dialoguePiece[] = [];
+    const scenes = parsed.properties.scenes || [];
 
     for (var i=0; i<parsed.tokens.length; i++)
     {
         while (i<parsed.tokens.length && parsed.tokens[i].type==="character")
         {
-            const character = parsed.tokens[i].name()
+            const charToken = parsed.tokens[i];
+            const character = charToken.name();
+            const line = charToken.line != null ? charToken.line : 0;
+            const sceneTitle = getSceneTitleAtLine(scenes, line);
             var speech = "";
             while (i++ && i<parsed.tokens.length)
             {
-                if (parsed.tokens[i].type==="dialogue")        
+                if (parsed.tokens[i].type==="dialogue")
                 {
                     speech += parsed.tokens[i].text + " "
                 }
@@ -146,7 +169,9 @@ const createCharacterStatistics = (parsed: parseoutput): characterStatistics => 
             speech = speech.trim();
             dialoguePieces.push({
                 character,
-                speech
+                speech,
+                line,
+                sceneTitle
             });
         }
     }
@@ -191,6 +216,9 @@ const createCharacterStatistics = (parsed: parseoutput): characterStatistics => 
             if(averageComplexity>0) speechcomplexityArray.push(averageComplexity);
         }
         const wordsSpoken = getWordCount(allDialogueCombined);
+        const report: characterReportEntry[] = dialoguePieces
+            .filter((p) => p.character === singledialPerChar)
+            .map((p) => ({ sceneTitle: p.sceneTitle, line: p.line }));
         characterStats.push({
             name: singledialPerChar,
             color: rgbToHex(wordToColor(singledialPerChar, 0.6, 0.5)),
@@ -199,6 +227,7 @@ const createCharacterStatistics = (parsed: parseoutput): characterStatistics => 
             averageComplexity,
             monologues,
             wordsSpoken,
+            report: report.length ? report : undefined,
         })
     })
 

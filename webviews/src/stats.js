@@ -384,6 +384,121 @@ function updateStats(){
     });
     syncVisibility();
 
+    let selectedReportCharacters = [];
+    function renderCharacterReport() {
+        const section = document.getElementById("characterReport-section");
+        const single = document.getElementById("characterReport-single");
+        const singleTitle = document.getElementById("characterReport-single-title");
+        const singleList = document.getElementById("characterReport-single-list");
+        const compare = document.getElementById("characterReport-compare");
+        const compareTitle1 = document.getElementById("characterReport-compare-title1");
+        const compareList1 = document.getElementById("characterReport-compare-list1");
+        const compareTitle2 = document.getElementById("characterReport-compare-title2");
+        const compareList2 = document.getElementById("characterReport-compare-list2");
+        const hint = document.getElementById("characterReport-hint");
+
+        if (selectedReportCharacters.length === 0) {
+            section.classList.remove("hidden");
+            single.classList.add("hidden");
+            compare.classList.add("hidden");
+            hint.classList.remove("hidden");
+            return;
+        }
+        hint.classList.add("hidden");
+        const chars = state.stats.characterStats.characters;
+        const getReport = (name) => chars.find(c => c.name === name);
+
+        if (selectedReportCharacters.length === 1) {
+            single.classList.remove("hidden");
+            compare.classList.add("hidden");
+            const data = getReport(selectedReportCharacters[0]);
+            singleTitle.textContent = data ? data.name : selectedReportCharacters[0];
+            singleTitle.style.color = data && data.color ? data.color : "";
+            singleList.innerHTML = "";
+            if (data && data.report && data.report.length > 0) {
+                data.report.forEach(entry => {
+                    const li = document.createElement("li");
+                    const sceneSpan = document.createElement("span");
+                    sceneSpan.className = "scene-title";
+                    sceneSpan.title = entry.sceneTitle;
+                    sceneSpan.textContent = entry.sceneTitle || "(no scene)";
+                    const lineSpan = document.createElement("span");
+                    lineSpan.className = "line-num";
+                    lineSpan.textContent = "Line " + (entry.line + 1);
+                    const revealBtn = document.createElement("button");
+                    revealBtn.className = "reveal-btn codicon codicon-go-to-file";
+                    revealBtn.title = "Reveal in editor";
+                    revealBtn.setAttribute("aria-label", "Reveal in editor");
+                    revealBtn.addEventListener("click", () => revealLine(entry.line));
+                    li.appendChild(sceneSpan);
+                    li.appendChild(lineSpan);
+                    li.appendChild(revealBtn);
+                    singleList.appendChild(li);
+                });
+            } else {
+                const li = document.createElement("li");
+                li.textContent = "No dialogue lines.";
+                singleList.appendChild(li);
+            }
+        } else {
+            single.classList.add("hidden");
+            compare.classList.remove("hidden");
+            const data1 = getReport(selectedReportCharacters[0]);
+            const data2 = getReport(selectedReportCharacters[1]);
+            compareTitle1.textContent = data1 ? data1.name : selectedReportCharacters[0];
+            compareTitle1.style.color = data1 && data1.color ? data1.color : "";
+            compareTitle2.textContent = data2 ? data2.name : selectedReportCharacters[1];
+            compareTitle2.style.color = data2 && data2.color ? data2.color : "";
+
+            function fillList(listEl, data) {
+                listEl.innerHTML = "";
+                if (data && data.report && data.report.length > 0) {
+                    data.report.forEach(entry => {
+                        const li = document.createElement("li");
+                        const sceneSpan = document.createElement("span");
+                        sceneSpan.className = "scene-title";
+                        sceneSpan.title = entry.sceneTitle;
+                        sceneSpan.textContent = entry.sceneTitle || "(no scene)";
+                        const lineSpan = document.createElement("span");
+                        lineSpan.className = "line-num";
+                        lineSpan.textContent = "Line " + (entry.line + 1);
+                        const revealBtn = document.createElement("button");
+                        revealBtn.className = "reveal-btn codicon codicon-go-to-file";
+                        revealBtn.title = "Reveal in editor";
+                        revealBtn.setAttribute("aria-label", "Reveal in editor");
+                        revealBtn.addEventListener("click", () => revealLine(entry.line));
+                        li.appendChild(sceneSpan);
+                        li.appendChild(lineSpan);
+                        li.appendChild(revealBtn);
+                        listEl.appendChild(li);
+                    });
+                } else {
+                    const li = document.createElement("li");
+                    li.textContent = "No dialogue lines.";
+                    listEl.appendChild(li);
+                }
+            }
+            fillList(compareList1, data1);
+            fillList(compareList2, data2);
+        }
+        section.classList.remove("hidden");
+    }
+
+    characterTable.on("click", "tbody tr", function () {
+        const rowData = characterTable.row(this).data();
+        if (!rowData || !rowData.name) return;
+        const name = rowData.name;
+        const idx = selectedReportCharacters.indexOf(name);
+        if (idx >= 0) {
+            selectedReportCharacters.splice(idx, 1);
+        } else if (selectedReportCharacters.length < 2) {
+            selectedReportCharacters.push(name);
+        } else {
+            selectedReportCharacters[1] = name;
+        }
+        renderCharacterReport();
+    });
+
     
     let locationsTable = TableChart.render("#locationStats-table", {
         data: state.stats.locationStats.locations,

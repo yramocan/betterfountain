@@ -425,6 +425,17 @@
     .hidden{
         display: none;
     }
+    #characterReport-section h2 { margin-top: 16px; }
+    #characterReport-section h2 .codicon { margin-right: 6px; }
+    #characterReport-section h3 { font-size: 14px; margin: 12px 0 6px 0; }
+    .characterReport-columns { display: flex; gap: 24px; flex-wrap: wrap; }
+    .characterReport-column { flex: 1; min-width: 200px; }
+    #characterReport-section ul { list-style: none; padding: 0; margin: 0; }
+    #characterReport-section li { padding: 4px 0; border-bottom: 1px solid var(--vscode-textSeparator-foreground); display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    #characterReport-section li .scene-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #characterReport-section li .line-num { opacity: 0.8; font-size: 12px; }
+    #characterReport-section .reveal-btn { font: normal normal normal 14px/1 codicon; color: var(--vscode-textLink-foreground); cursor: pointer; padding: 2px 4px; }
+    #characterReport-section .reveal-btn:hover { text-decoration: underline; }
     
     </style>
 </head>
@@ -529,6 +540,26 @@
             <div style="height:256px;box-sizing: border-box;" class="linechart" id="characterStats-lengthchart"></div>
             <table id="characterStats-table" style="width:100%;margin-top:24px;">
             </table>
+            <div id="characterReport-section" class="hidden" style="margin-top:24px;">
+                <h2><span class="codicon codicon-book"></span>Character report</h2>
+                <p class="summary" id="characterReport-hint">Click a character in the table to see their report, or click two to compare.</p>
+                <div id="characterReport-single" class="hidden">
+                    <h3 id="characterReport-single-title"></h3>
+                    <ul id="characterReport-single-list"></ul>
+                </div>
+                <div id="characterReport-compare" class="hidden">
+                    <div class="characterReport-columns">
+                        <div class="characterReport-column">
+                            <h3 id="characterReport-compare-title1"></h3>
+                            <ul id="characterReport-compare-list1"></ul>
+                        </div>
+                        <div class="characterReport-column">
+                            <h3 id="characterReport-compare-title2"></h3>
+                            <ul id="characterReport-compare-list2"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
         </div>
         <div style="display:none" data-group="scenes">
