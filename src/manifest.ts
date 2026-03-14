@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs";
+import { stripFrontmatter } from "./frontmatter";
 
 export const MANIFEST_FILENAME = "screenplay.json";
 
@@ -73,7 +74,8 @@ export function loadCombinedContent(manifestUri: vscode.Uri): { content: string;
 	for (const uri of uris) {
 		try {
 			if (!fs.existsSync(uri.fsPath)) return null;
-			parts.push(fs.readFileSync(uri.fsPath, "utf8"));
+			const raw = fs.readFileSync(uri.fsPath, "utf8");
+			parts.push(stripFrontmatter(raw));
 		} catch {
 			return null;
 		}

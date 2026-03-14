@@ -12,3 +12,6 @@ client/server
 /standalone/.webpack
 .env
 /syntaxes/markdown.tmlanguage.json
+
+# Local test workspace (recreate from README instructions if needed)
+/test-workspace

@@ -5,6 +5,7 @@ import { getFountainConfig } from "./configloader";
 import * as vscode from 'vscode';
 import { AddDialogueNumberDecoration } from "./providers/Decorations";
 import helpers from "./helpers";
+import { parseFrontmatter, FountainFrontmatter } from "./frontmatter";
 
 declare global {
     interface Array<T> {
@@ -192,6 +193,8 @@ export class screenplayProperties {
     characters: Map<string, number[]>;
     locations: Map<string, Location[]>;
     structure: StructToken[];
+    /** YAML frontmatter from start of file (type, beatIds, summary, point, locationIds, etc.) */
+    frontmatter: FountainFrontmatter | null;
 }
 export interface parseoutput {
     scriptHtml: string,
@@ -238,9 +241,17 @@ export var parse = function (original_script: string, cfg: any, generate_html: b
                 lengthDialogue: 0,
                 characters: new Map<string, number[]>(),
                 locations: new Map<string, Location[]>(),
-                structure: []
+                structure: [],
+                frontmatter: null
             }
         };
+    const parsedFm = parseFrontmatter(original_script);
+    if (parsedFm.frontmatter !== null) {
+        script = parsedFm.body;
+        result.properties.frontmatter = parsedFm.frontmatter;
+    } else {
+        result.properties.frontmatter = null;
+    }
     if (!script) {
         return result;
     }
