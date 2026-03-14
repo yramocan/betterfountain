@@ -20,9 +20,12 @@ export class Options {
     font: string;
     exportconfig: fountainconfig.ExportConfig;
 }
-var PDFDocument = require('pdfkit'),
-    //helper = require('../helpers'),
-    Blob = require('blob');
+var PDFDocument = require('pdfkit');
+// Node 18+ provides global Blob (see engines in package.json). No blob package needed.
+if (typeof globalThis.Blob === 'undefined') {
+	throw new Error('Better Fountain requires Node 18+ (global Blob). Your Node version: ' + process.version);
+}
+const Blob = globalThis.Blob;
 
 var create_simplestream = function (filepath: string) {
     var simplestream: any = {

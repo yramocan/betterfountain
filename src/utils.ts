@@ -438,15 +438,23 @@ export function wordToColor(word: string, s:number = 0.5, v:number = 1): Array<n
 	return HSVToRGB(h, s, v)
 }
 
-const extensionpath = (vscode.extensions.getExtension(FOUNTAIN_EXTENSION_ID)
-	?? vscode.extensions.getExtension("piersdeseilligny.betterfountain"))!.extensionPath;
+let _extensionPath: string | null = null;
+function getExtensionPath(): string {
+	if (_extensionPath === null) {
+		const ext = vscode.extensions?.getExtension(FOUNTAIN_EXTENSION_ID)
+			?? vscode.extensions?.getExtension("piersdeseilligny.betterfountain");
+		_extensionPath = ext ? ext.extensionPath : process.cwd();
+	}
+	return _extensionPath;
+}
+
 export function resolveAsUri(panel:vscode.WebviewPanel,...p: string[]):string {
-    const uri = vscode.Uri.file(path.join(extensionpath, ...p));
+    const uri = vscode.Uri.file(path.join(getExtensionPath(), ...p));
     return panel.webview.asWebviewUri(uri).toString();
   }
 
 export function getAssetsUri(iconName:string):vscode.Uri{
-	return vscode.Uri.file(path.join(extensionpath, "assets", iconName+".svg"));
+	return vscode.Uri.file(path.join(getExtensionPath(), "assets", iconName+".svg"));
 }
 export function mapToObject(map:any):any{
     let jsonObject:any = {};  
