@@ -9,6 +9,7 @@ import * as afterparser from "./afterwriting-parser";
 import { GeneratePdf } from "./pdf/pdf";
 import { getActiveFountainDocument, getEditor, openFile, shiftScenes } from "./utils";
 import * as telemetry from "./telemetry";
+import { findManifestFor, loadCombinedContent } from "./manifest";
 
 const TEMPLATES: { id: string; label: string; description: string; file: string }[] = [
 	{ id: "beat-sheet", label: "Blake Snyder's Beat Sheet", description: "15 beats (Opening Image through Final Image)", file: "beat-sheet.fountain" },
@@ -50,15 +51,39 @@ export async function newFromTemplate(context: vscode.ExtensionContext) {
 export async function exportPdf(showSaveDialog: boolean = true, openFileOnSave: boolean = false, highlightCharacters = false, highlightChanges = false, configOverrides?: Partial<import("./configloader").FountainConfig>) {
   var canceled = false;
   if (canceled) return;
-  var editor = getEditor(getActiveFountainDocument());
-
-  var config = { ...getFountainConfig(getActiveFountainDocument()), ...configOverrides };
+  const docUri = getActiveFountainDocument();
+  if (!docUri) {
+    vscode.window.showErrorMessage("Open a Fountain document first.");
+    return;
+  }
+  var config = { ...getFountainConfig(docUri), ...configOverrides };
   telemetry.reportTelemetry("command:fountain.exportpdf");
 
-  var parsed = await afterparser.parse(editor.document.getText(), config, false);
+  let content: string;
+  let defaultFilename: string;
+  const manifestUri = findManifestFor(docUri);
+  if (manifestUri) {
+    const combined = loadCombinedContent(manifestUri);
+    if (!combined) {
+      vscode.window.showErrorMessage("Manifest references missing or unreadable files.");
+      return;
+    }
+    content = combined.content;
+    defaultFilename = path.join(path.dirname(manifestUri.fsPath), "screenplay");
+  } else {
+    const editor = getEditor(docUri);
+    if (!editor) {
+      vscode.window.showErrorMessage("Open a Fountain document first.");
+      return;
+    }
+    content = editor.document.getText();
+    defaultFilename = editor.document.fileName.replace(/(\.(((better)?fountain)|spmd|txt))$/, '');
+  }
+
+  var parsed = await afterparser.parse(content, config, false);
 
   var exportconfig: ExportConfig = { highlighted_characters: [], highlighted_changes: { lines: [], highlightColor: []} };
-  var filename = editor.document.fileName.replace(/(\.(((better)?fountain)|spmd|txt))$/, ''); //screenplay.fountain -> screenplay
+  var filename = defaultFilename;
   if (highlightCharacters) {
     var highlighted_characters = await vscode.window.showQuickPick(Array.from(parsed.properties.characters.keys()), { canPickMany: true });
     exportconfig.highlighted_characters = highlighted_characters;
@@ -74,7 +99,6 @@ export async function exportPdf(showSaveDialog: boolean = true, openFileOnSave: 
   }
   if (highlightChanges) {
     // Get the workspace folder of the active document
-    const docUri = editor.document.uri;
     const workspaceFolder = vscode.workspace.getWorkspaceFolder(docUri);
     if (!workspaceFolder) {
       vscode.window.showErrorMessage('No workspace folder found.');
