@@ -1,5 +1,5 @@
 import { getFountainConfig } from "../configloader";
-import { getActiveFountainDocument, getEditor } from "../utils";
+import { getActiveFountainDocument, getEditor, FOUNTAIN_EXTENSION_ID } from "../utils";
 import * as afterparser from "../afterwriting-parser";
 import { fileToBase64, openFile, revealFile } from "../utils";
 import * as vscode from "vscode";
@@ -18,7 +18,8 @@ export async function exportHtml(){
     var fountainconfig = getFountainConfig(editor.document.uri);
 	var output = afterparser.parse(editor.document.getText(), fountainconfig , true);
 
-    let extensionpath = vscode.extensions.getExtension("piersdeseilligny.betterfountain").extensionPath;
+    const ext = vscode.extensions.getExtension(FOUNTAIN_EXTENSION_ID) ?? vscode.extensions.getExtension("piersdeseilligny.betterfountain");
+    let extensionpath = ext!.extensionPath;
     let htmlpath = path.join(extensionpath, 'assets', 'staticexport.html');
 	var rawhtml =  fs.readFileSync(htmlpath, 'utf8');
 

@@ -379,18 +379,22 @@ export function revealFile(p:string){
 export function assetsPath(): string{
     return __dirname;
 }
+/** Extension ID for this fork; fallback to upstream for compatibility when running from source. */
+export const FOUNTAIN_EXTENSION_ID = 'yramocan.betterfountain';
+
 interface IPackageInfo {
 	name: string;
 	version: string;
-	aiKey: string;
+	aiKey?: string;
 }
 export function getPackageInfo(): IPackageInfo | null {
-	const extension = vscode.extensions.getExtension('piersdeseilligny.betterfountain');
+	const extension = vscode.extensions.getExtension(FOUNTAIN_EXTENSION_ID)
+		?? vscode.extensions.getExtension('piersdeseilligny.betterfountain');
 	if (extension && extension.packageJSON) {
 		return {
 			name: extension.packageJSON.name,
 			version: extension.packageJSON.version,
-			aiKey: extension.packageJSON.aiKey
+			...(extension.packageJSON.aiKey && { aiKey: extension.packageJSON.aiKey })
 		};
 	}
 	return null;
@@ -434,7 +438,8 @@ export function wordToColor(word: string, s:number = 0.5, v:number = 1): Array<n
 	return HSVToRGB(h, s, v)
 }
 
-const extensionpath = vscode.extensions.getExtension("piersdeseilligny.betterfountain").extensionPath;
+const extensionpath = (vscode.extensions.getExtension(FOUNTAIN_EXTENSION_ID)
+	?? vscode.extensions.getExtension("piersdeseilligny.betterfountain"))!.extensionPath;
 export function resolveAsUri(panel:vscode.WebviewPanel,...p: string[]):string {
     const uri = vscode.Uri.file(path.join(extensionpath, ...p));
     return panel.webview.asWebviewUri(uri).toString();

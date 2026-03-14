@@ -1,17 +1,16 @@
 import { default as VSCodeTelemetryReporter } from 'vscode-extension-telemetry';
 import { getPackageInfo } from './utils';
 
-let reporter:VSCodeTelemetryReporter;
-export function reportTelemetry(eventName: string, properties?: { [key: string]: string; }, measurements?: { [key: string]: number; }){
-	if(reporter){
-        reporter.sendTelemetryEvent(eventName, properties, measurements);
+let reporter: VSCodeTelemetryReporter | undefined;
+export function reportTelemetry(eventName: string, properties?: { [key: string]: string; }, measurements?: { [key: string]: number; }) {
+	if (reporter) {
+		reporter.sendTelemetryEvent(eventName, properties, measurements);
 	}
 }
 
-export function initTelemetry(){
-	//Register telemetry
-	let packageinfo = getPackageInfo();
-	if(packageinfo){
+export function initTelemetry() {
+	const packageinfo = getPackageInfo();
+	if (packageinfo?.aiKey) {
 		reporter = new VSCodeTelemetryReporter(packageinfo.name, packageinfo.version, packageinfo.aiKey);
 	}
 }
